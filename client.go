@@ -13,8 +13,9 @@ import (
 var (
 	LNProxyError                = errors.New("")
 	PaymentHashMismatch         = errors.New("payment hash does not match")
-	CustomDescriptionMismatch   = errors.New("custom description does match")
+	DescriptionMismatch         = errors.New("description does match")
 	CustomRoutingBudgetMismatch = errors.New("routing budget not respected")
+	DestinationNotProxied       = errors.New("destination is not obscured")
 	InvalidProxyInvoice         = errors.New("invalid proxy invoice")
 )
 
@@ -82,13 +83,16 @@ func ValidateProxyInvoice(invoice, proxy_invoice string, routing_msat uint64) (b
 		return false, PaymentHashMismatch
 	}
 	if original.DescriptionHash != proxy.DescriptionHash {
-		return false, CustomDescriptionMismatch
+		return false, DescriptionMismatch
 	}
 	if bytes.Compare(original.Description, proxy.Description) != 0 {
-		return false, CustomDescriptionMismatch
+		return false, DescriptionMismatch
 	}
 	if (original.AmountMsat + routing_msat) != proxy.AmountMsat {
 		return false, CustomRoutingBudgetMismatch
+	}
+	if bytes.Compare(original.Signature, proxy.Signature) == 0 {
+		return false, DestinationNotProxied
 	}
 	return true, nil
 }
