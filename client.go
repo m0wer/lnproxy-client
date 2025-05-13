@@ -101,7 +101,7 @@ func (x *LNProxy) RequestProxy(invoice string, routing_msat uint64) (proxy_invoi
 		return "", err
 	}
 	
-	x.logger.Debug("Successfully received proxy invoice")
+	x.logger.Debug("Successfully received proxy invoice: %s", r.ProxyInvoice)
 	return r.ProxyInvoice, nil
 }
 
