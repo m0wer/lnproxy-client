@@ -49,10 +49,10 @@ func (x *LNProxy) RequestProxy(invoice string, routing_msat uint64) (proxy_invoi
 	
 	params, _ := json.Marshal(struct {
 		Invoice     string `json:"invoice"`
-		RoutingMsat uint64 `json:"routing_msat,string"`
+		RoutingMsat string `json:"routing_msat"`
 	}{
 		Invoice:     invoice,
-		RoutingMsat: routing_msat,
+		RoutingMsat: fmt.Sprintf("%d", routing_msat),
 	})
 	
 	buf := bytes.NewBuffer(params)
@@ -62,6 +62,7 @@ func (x *LNProxy) RequestProxy(invoice string, routing_msat uint64) (proxy_invoi
 		return "", err
 	}
 	
+	req.Header.Set("Content-Type", "application/json")
 	x.logger.Debug("Sending request to %s", x.URL.String())
 	resp, err := x.Client.Do(req)
 	if err != nil {
@@ -75,6 +76,7 @@ func (x *LNProxy) RequestProxy(invoice string, routing_msat uint64) (proxy_invoi
 		x.logger.Warn("Received non-OK status code: %d", resp.StatusCode)
 		r := struct {
 			Reason string `json:"reason"`
+			Status string `json:"status,omitempty"`
 		}{}
 		err = dec.Decode(&r)
 		if err != nil && err != io.EOF {
